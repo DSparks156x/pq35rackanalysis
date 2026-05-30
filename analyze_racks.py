@@ -1088,12 +1088,12 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
                     <div class="kpi-sub">${passatTrials.length} active trials${labelSuffix}</div>
                 </div>
                 <div class="kpi-card kpi-tts">
-                    <div class="kpi-label">TTS 237 Avg Velocity</div>
+                    <div class="kpi-label">TTS 237 Avg Peak Velocity</div>
                     <div class="kpi-value">${avgVelTTS.toFixed(0)} °/s</div>
                     <div class="kpi-sub">Transient speed performance</div>
                 </div>
                 <div class="kpi-card kpi-passat">
-                    <div class="kpi-label">Passat 311 Avg Velocity</div>
+                    <div class="kpi-label">Passat 311 Avg Peak Velocity</div>
                     <div class="kpi-value">${avgVelPassat.toFixed(0)} °/s</div>
                     <div class="kpi-sub">Transient speed performance</div>
                 </div>

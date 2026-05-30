@@ -73,3 +73,7 @@ The biggest imo, is steer rate. yes, it can reach sufficient steer angle for a p
 the torque controller isnt helping... the feedforward applies torque proportionally lat accel, which only handles torque needed to *hold* steer angle (ideally), and the PID handles additional torque needed to *move* the wheel... its abnormally dogshit because the feedforward expects that 0 torque will produce 0 angle (self center), and obviously HCA7 doesnt do that... otherwise, its poorly tuned and i suspect retuning the PID alone would make it much better. plus speed variable tuning, even better... or a fancier controller. been fucking with it.
 
 Other steer characteristics seem to also affect HCA... annecdotaly, i think HCA behaves much different if you gradually ramp torque vs just, slam full torque. probably some sort of dampening... I also think it has a torque ramp internally that behaves weirdly... it may value smoother torque... im kinda wondering if it ramps down much faster than it ramps up, unintentionally reducing torque if the command is spikey (more than the command should be).
+
+### Dataset difs
+
+At 0 speed, passat is obviosly hugely better.... actually letting 311 drive? didnt seem as much better... but i didnt really actually properly test it, just like 1 drive that was mostly either shit 237 did fine or turns wayyy to difficult for either at 300cnm and the torque controller. so. 
