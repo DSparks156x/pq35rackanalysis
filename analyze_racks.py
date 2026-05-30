@@ -801,12 +801,16 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
             <div class="header-title">
                 <h1>Steering Rack Dynamic Response</h1>
                 <p>Advanced comparative step-response and torque coupling analysis</p>
+                <div class="badge-container" style="margin-top: 0.75rem; display: flex; gap: 0.75rem;">
+                    <span class="badge badge-tts">Rack 237: Audi TTS Dataset</span>
+                    <span class="badge badge-passat">Rack 311: Passat NMS Dataset</span>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 1.5rem;">
                 <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
-                    <a href="index.html" class="nav-link active">Dashboard</a>
-                    <a href="analysis.html" class="nav-link">Analysis Report</a>
-                    <a href="notes.html" class="nav-link">Engineering Notes</a>
+                    <a href="index.html" class="nav-link active">Graphs</a>
+                    <a href="notes.html" class="nav-link">my notes</a>
+                    <a href="analysis.html" class="nav-link">AIs useful info</a>
                 </nav>
                 <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                     <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">
@@ -821,7 +825,7 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
         <div style="background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.15); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: fadeIn 0.8s ease-in-out;">
             <span style="font-size: 1.25rem; vertical-align: middle;">💡</span>
             <p style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 300; margin: 0; line-height: 1.5;">
-                For custom testing comments, firmware patch offsets, standstill activation overrides, and torque ceilings, please see the dedicated <a href="notes.html" style="color: var(--accent-cyan); font-weight: 500; text-decoration: none; border-bottom: 1px dashed rgba(0, 242, 254, 0.4); padding-bottom: 1px; transition: all 0.3s;" onmouseover="this.style.color='#fff'; this.style.borderBottomColor='#fff';" onmouseout="this.style.color='var(--accent-cyan)'; this.style.borderBottomColor='rgba(0, 242, 254, 0.4)';">Engineering Notes</a> page.
+                For custom testing comments, firmware patch offsets, standstill activation overrides, and torque ceilings, please see the dedicated <a href="notes.html" style="color: var(--accent-cyan); font-weight: 500; text-decoration: none; border-bottom: 1px dashed rgba(0, 242, 254, 0.4); padding-bottom: 1px; transition: all 0.3s;" onmouseover="this.style.color='#fff'; this.style.borderBottomColor='#fff';" onmouseout="this.style.color='var(--accent-cyan)'; this.style.borderBottomColor='rgba(0, 242, 254, 0.4)';">my notes</a> page.
             </p>
         </div>
 
@@ -1494,6 +1498,34 @@ def generate_text_page(title, nav_active, body_html, output_path):
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
         }
         
+        .badge-container {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .badge-tts {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .badge-passat {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+        
         /* Table styles inside articles */
         .table-wrapper {
             overflow-x: auto;
@@ -1539,12 +1571,16 @@ def generate_text_page(title, nav_active, body_html, output_path):
             <div class="header-title">
                 <h1>Steering Rack Dynamic Response</h1>
                 <p>Advanced comparative step-response and torque coupling analysis</p>
+                <div class="badge-container" style="margin-top: 0.75rem; display: flex; gap: 0.75rem;">
+                    <span class="badge badge-tts">Rack 237: Audi TTS Dataset</span>
+                    <span class="badge badge-passat">Rack 311: Passat NMS Dataset</span>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 1.5rem;">
                 <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
-                    <a href="index.html" class="nav-link {active_dashboard}">Dashboard</a>
-                    <a href="analysis.html" class="nav-link {active_analysis}">Analysis Report</a>
-                    <a href="notes.html" class="nav-link {active_notes}">Engineering Notes</a>
+                    <a href="index.html" class="nav-link {active_dashboard}">Graphs</a>
+                    <a href="notes.html" class="nav-link {active_notes}">my notes</a>
+                    <a href="analysis.html" class="nav-link {active_analysis}">AIs useful info</a>
                 </nav>
                 <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                     <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">

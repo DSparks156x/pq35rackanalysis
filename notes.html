@@ -113,6 +113,34 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
         }
         
+        .badge-container {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .badge-tts {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .badge-passat {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+        
         /* Table styles inside articles */
         .table-wrapper {
             overflow-x: auto;
@@ -158,12 +186,16 @@
             <div class="header-title">
                 <h1>Steering Rack Dynamic Response</h1>
                 <p>Advanced comparative step-response and torque coupling analysis</p>
+                <div class="badge-container" style="margin-top: 0.75rem; display: flex; gap: 0.75rem;">
+                    <span class="badge badge-tts">Rack 237: Audi TTS Dataset</span>
+                    <span class="badge badge-passat">Rack 311: Passat NMS Dataset</span>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 1.5rem;">
                 <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
-                    <a href="index.html" class="nav-link ">Dashboard</a>
-                    <a href="analysis.html" class="nav-link ">Analysis Report</a>
-                    <a href="notes.html" class="nav-link active">Engineering Notes</a>
+                    <a href="index.html" class="nav-link ">Graphs</a>
+                    <a href="notes.html" class="nav-link active">my notes</a>
+                    <a href="analysis.html" class="nav-link ">AIs useful info</a>
                 </nav>
                 <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                     <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">
@@ -177,6 +209,8 @@
         <div class="article-card">
             <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-top: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--accent-cyan); padding-left: 0.75rem;">Steering Rack Calibration & Patcher Notes</h2>
 <div style="height: 0.5rem;"></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:2rem 0;"><img src="HCA5.gif" alt="HCA5 goes to 11" style="max-width:100%; max-height:480px; border-radius:12px; border:1px solid var(--border-color); box-shadow:0 8px 32px rgba(0,0,0,0.3);"/><span style="color:var(--text-secondary); font-size:0.95rem; font-weight:300; font-family:'Outfit',sans-serif; margin-top:0.25rem;">HCA5 goes to 11</span></div>
+<div style="height: 0.5rem;"></div>
 <p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">These are some of my notes/observations of how this thing behaves..</p>
 <div style="height: 0.5rem;"></div>
 <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
@@ -184,6 +218,8 @@
 <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Test Process & Vehicle</h3>
 <div style="height: 0.5rem;"></div>
 <p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Im testing on my 8J TT, with 3001 8J rack firmware.  TTs are special and have their own ever so slightly different firmware. Golf 3001 vs TT 3001 is 97 bytes different or something out of the 344kb application section. No fucking clue what audi changed, but i have some suspicions. too lazy to type all that up... has several probably bitmasks set differently ,and at least one block with some sort of curve/dataset presumably.  PLA doesnt seem to work, iv tried. Adaptation channel saves/accepts, and it faults, but the measuring block for on/off is blank, while DSR/HCA it works. Rack just status 2s PLA message. HCA works fine. DSR untested. HCA works. TT SSP claims TT firmware exists to remove DSR.</p>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Dataset 237 is the TTS, Dataset 311 is the passat nms.</p>
 <div style="height: 0.5rem;"></div>
 <ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
 <li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Tires</strong>: 255/35/19 tires. is TT so TT suspension difs and TT steering ratio, higher than golfs.</li>
