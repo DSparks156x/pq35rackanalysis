@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steering Rack Response Analysis Report</title>
+    <!-- Premium Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Mermaid.js CDN for Flowcharts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        /* Shared Stylesheets for Absolute Visual Consistency */
+        :root {
+            --bg-color-1: #070a13;
+            --bg-color-2: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.45);
+            --card-bg-hover: rgba(30, 41, 59, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --accent-cyan: #00f2fe;
+            --accent-purple: #8a2be2;
+            --accent-tts: #3b82f6;
+            --accent-passat: #ec4899;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-blur: blur(16px);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color-1) 0%, var(--bg-color-2) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        header {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-title h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 0.25rem;
+            font-weight: 300;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+            color: var(--accent-cyan) !important;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .nav-link.active {
+            color: var(--accent-cyan) !important;
+            background: rgba(0, 242, 254, 0.1) !important;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+        
+        .article-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Table styles inside articles */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        
+        th {
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.4);
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 300;
+        }
+        
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <header>
+            <div class="header-title">
+                <h1>Steering Rack Dynamic Response</h1>
+                <p>Advanced comparative step-response and torque coupling analysis</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
+                    <a href="index.html" class="nav-link ">Dashboard</a>
+                    <a href="analysis.html" class="nav-link active">Analysis Report</a>
+                    <a href="notes.html" class="nav-link ">Engineering Notes</a>
+                </nav>
+                <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                    <span>Repository</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="article-card">
+            <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-top: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--accent-cyan); padding-left: 0.75rem;">Engineering Analysis Report: Steering Rack Dynamic Response</h2>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;"><strong>A comparative study of the Audi TTS (Rack 237) and Passat NMS (Rack 311) under HCA Step-Torque Sweeps</strong></p>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Executive Summary</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">This report presents a thorough engineering analysis of the dynamic step-response datasets for the Audi TTS (Rack 237) and the Volkswagen Passat NMS (Rack 311) steering racks. Both systems were tested under standard VW steering status <strong>HCA7</strong> across a wide torque command spectrum ranging from <strong>150 cNm to 632 cNm</strong>.</p>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Key Findings</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">1. <strong>Friction and Centering "Breakaway" Thresholds</strong>: Both racks exhibit a highly non-linear, dual-regime behavior. Below a critical torque command threshold, the racks are torque-limited, restricted to small deflection angles (<90°) and slow angular speeds (<150°/s) by internal steering column centering forces and friction. Once this threshold is crossed, the racks "break away" and transition to high-velocity sweeps, reaching their physical mechanical stops.</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">2. <strong>Rack Sensitivity & Leverage Differences</strong>: The Passat NMS (311) rack is significantly more sensitive than the TTS (237) rack. Its breakaway threshold occurs lower (between 400 and 500 cNm, compared to 500–600 cNm for the TTS). Consequently, it reaches wider deflection angles and higher peak speeds at lower commanded torques.</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">3. <strong>Mechanical Hard Stops</strong>: The Passat NMS (311) rack has a physical limit of exactly <strong>520.6°</strong> (reached at 600 cNm+ with zero variation). The TTS (237) rack saturates at a mechanical stop of <strong>455.8°</strong>.</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">4. <strong>Transient Acceleration</strong>: The Passat NMS (311) rack possesses superior acceleration characteristics in the breakaway regime, reaching its peak velocity <strong>270 ms faster</strong> than the TTS rack (0.737s vs 1.013s at peak 632 cNm command).</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">5. <strong>Non-Linear Driver Torque Coupling</strong>: Driver column feedback torque is strongly coupled to command torque, but its relationship is non-linear and state-dependent. At sub-breakaway torques, opposing driver torque scales proportionally to commanded torque (peaking at <strong>24.1 cNm</strong> for Passat at 400 cNm command). However, once the rack breaks away and hits its mechanical stops, the steady-state opposing driver feedback collapses back to nominal values (<strong>~7.5 cNm</strong>).</p>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">1. Quantitative Performance Matrix</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">The following table summarizes the aggregated mean values and standard deviations (accounting for run deviations in <code style="font-family:\'JetBrains Mono\',monospace; background:rgba(0,0,0,0.3); padding:0.15rem 0.3rem; border-radius:4px; font-size:0.9rem; color:#3b82f6;">r2</code>, <code style="font-family:\'JetBrains Mono\',monospace; background:rgba(0,0,0,0.3); padding:0.15rem 0.3rem; border-radius:4px; font-size:0.9rem; color:#3b82f6;">r2_2</code>, <code style="font-family:\'JetBrains Mono\',monospace; background:rgba(0,0,0,0.3); padding:0.15rem 0.3rem; border-radius:4px; font-size:0.9rem; color:#3b82f6;">2</code>, and <code style="font-family:\'JetBrains Mono\',monospace; background:rgba(0,0,0,0.3); padding:0.15rem 0.3rem; border-radius:4px; font-size:0.9rem; color:#3b82f6;">3</code> trials) for both systems:</p>
+<div style="height: 0.5rem;"></div>
+<div class="table-wrapper" style="margin: 1.5rem 0; overflow-x:auto;"><table style="width:100%; border-collapse:collapse;">
+<thead><tr style="border-bottom: 2px solid var(--border-color);">
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Rack ID</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Commanded Torque (cNm)</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Active Trials</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Peak Angle (deg)</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Peak Velocity (deg/s)</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">90% Rise Time (s)</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Peak Driver Torque (cNm)</th>
+<th style="padding:0.75rem; color:var(--text-secondary); font-size:0.8rem; text-transform:uppercase; font-weight:600; text-align:left;">Steady-State opposing Driver Torque (cNm)</th>
+</tr></thead><tbody>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">150</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">6.0° ± 0.0°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">31.2 ± 0.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">2.80</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">18.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">8.0 ± 0.0</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">300</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">16.4° ± 1.5°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">62.0 ± 3.7</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">0.32</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">22.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">10.7 ± 0.6</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">400</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">25.8° ± 0.9°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">82.8 ± 3.4</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">0.44</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">22.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">14.7 ± 0.6</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">500</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">4</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">219.4° ± 87.7°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">153.2 ± 32.3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.75</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">30.5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">11.6 ± 12.0</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">600</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">4</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">440.7° ± 6.1°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">555.6 ± 66.5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.31</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">35.8</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">15.0 ± 2.0</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#60a5fa; font-weight:500;">TTS (237)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">632</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">455.8° ± 2.5°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">722.3 ± 22.1</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.23</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">36.6</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">17.6 ± 1.9</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">150</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">7.4° ± 0.0°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">38.7 ± 0.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">0.31</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">14.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">7.5 ± 0.0</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">300</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">2</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">25.3° ± 2.1°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">99.7 ± 4.2</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">0.39</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">23.5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">12.5 ± 0.7</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">400</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">2</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">89.3° ± 4.2°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">132.4 ± 6.3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">0.96</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">32.5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong>24.1° ± 0.5</strong></td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">500</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">2</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">458.1° ± 4.2°</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">527.3 ± 20.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.38</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">29.5</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">14.7 ± 1.0</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">600</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong>520.6° ± 0.0°</strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">738.3 ± 4.8</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.24</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">26.3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">8.3 ± 0.5</td>
+</tr>
+<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong><span style="color:#f472b6; font-weight:500;">Passat (311)</span></strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">632</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;"><strong>520.6° ± 0.0°</strong></td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">764.6 ± 8.3</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">1.21</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">26.0</td>
+<td style="padding:0.75rem; font-size:0.95rem; font-weight:300;">7.5 ± 0.9</td>
+</tr>
+</tbody></table></div>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">2. Dynamic Trajectory & Travel Saturation Analysis</h3>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Low-Torque Regime (Sub-Breakaway)</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">At commanded torques between <strong>150 cNm and 400 cNm</strong>:</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The steering system is dominated by self-centering forces (torsion bar, caster, and suspension loading) and friction.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">For a <strong>300 cNm</strong> command, the TTS (237) rack deflects to a mere <strong>16.4°</strong> and reaches a maximum speed of <strong>62.0°/s</strong>. Under the exact same command, the Passat (311) rack reaches a substantially wider <strong>25.3°</strong> deflection and a peak speed of <strong>99.7°/s</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">This indicates that the Passat rack operates under lower mechanical impedance, lighter steering column preloads, or possesses higher internal power assistance gains.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">The Breakaway Transition</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">The transition from a highly restricted state to a wide-sweeping state is abrupt:</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Passat (311)</strong>: The breakaway occurs between <strong>400 cNm and 500 cNm</strong>. Increasing the torque command by only 25% (400 to 500 cNm) causes the max deflection to explode by <strong>413%</strong> (from 89.3° to 458.1°), and peak velocity to increase by <strong>298%</strong> (from 132.4°/s to 527.3°/s).</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>TTS (237)</strong>: The breakaway occurs later, between <strong>500 cNm and 600 cNm</strong>. At 500 cNm, the TTS shows enormous statistical variance in max deflection (<strong>219.4° ± 87.7°</strong> across 4 runs). This represents the critical "tipping point" of the system: in some runs, the rack succeeded in breaking past friction and swept wide, whereas in others it remained bound in the low-torque regime. At 600 cNm, it cleanly breaks away to a highly consistent <strong>440.7°</strong> sweep with a peak speed of <strong>555.6°/s</strong>.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">High-Torque Saturation (Mechanical Stops)</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Once fully saturated at <strong>600 cNm and 632 cNm</strong>:</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The racks sweep completely to their physical travel limits.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The Passat NMS (311) rack hits an absolute hard limit of <strong>520.6°</strong> with <strong>zero standard deviation (± 0.0°)</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The TTS (237) rack saturates at a mechanical stop of <strong>455.8°</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">These values confirm that the Passat rack offers a <strong>14.2% larger absolute physical steering range</strong> compared to the TTS rack.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">3. Transient Velocity & Acceleration Characteristics</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Time is a critical differentiator in how these racks respond.</p>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Velocity-Torque Coupling</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">In the fully saturated regime (632 cNm):</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Peak Angular Velocity</strong>: The Passat (311) rack hits a maximum velocity of <strong>764.6°/s</strong>, while the TTS (237) rack achieves <strong>722.3°/s</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Acceleration Latency</strong>: To evaluate acceleration, we analyze the time elapsed between HCA activation ($t_{aligned} = 0$) and the instant of peak angular velocity:</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Passat (311) @ 632 cNm</strong>: Reaches peak velocity in <strong>0.737 seconds</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>TTS (237) @ 632 cNm</strong>: Reaches peak velocity in <strong>1.013 seconds</strong>.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Interpretation</strong>: The Passat rack accelerates <strong>37.4% faster</strong> than the TTS rack under identical maximum command torque. The Passat column is significantly more agile and exhibits much lower inertia and mechanical drag.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">4. Driver Torque Coupling Analysis</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">The driver torque telemetry provides fascinating insights into steering column load feedback.</p>
+<div style="height: 0.5rem;"></div>
+<div style="display:flex; justify-content:center; margin: 1.5rem 0;"><pre class="mermaid" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: inline-block;">
+graph TD
+    A[HCA Command Torque] --> B{Step Applied?}
+    B -- Sub-Breakaway 150-400 cNm --> C[Rack Partially Deflected]
+    C --> D[High Load on Column Torsion Bar]
+    D --> E[Opposing Driver Torque Rises Proportionally]
+    
+    B -- Saturated 500-632 cNm --> F[Rack Breaks Away]
+    F --> G[Rack Hits Physical Stops]
+    G --> H[Torsion Bar Load Relaxes]
+    H --> I[Steady-State Opposing Driver Torque Collapses]
+</pre></div>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Proportional Coupling at Low Torques</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">When the rack is restricted inside its sub-breakaway regime:</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The HCA command actively twists the internal torsion bar to fight suspension and steering column resistance. Because the rack is held at a small angle, this heavy load is sustained.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">Consequently, the measured column feedback torque increases proportionally with the commanded torque:</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">For Passat (311): Opposing driver torque rises from <strong>7.5 cNm</strong> (at 150 cNm command) to <strong>12.5 cNm</strong> (at 300 cNm command) and peaks at <strong>24.1 cNm</strong> (at 400 cNm command).</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">For TTS (237): Rising steadily from <strong>8.0 cNm</strong> (at 150 cNm command) to <strong>14.7 cNm</strong> (at 400 cNm command).</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">The Feedback Collapse at Saturation</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">When the torque command is strong enough to trigger breakaway and push the rack to its physical limit:</p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The steering rack sweeps freely, relaxing the torque gradient on the torsion bar once it settles at its physical travel stop.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">As a result, the steady-state driver feedback torque <strong>drops off dramatically</strong>:</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">For Passat (311): When command torque goes from 400 cNm to 500 cNm, the steady-state feedback torque falls from <strong>24.1 cNm</strong> to <strong>14.7 cNm</strong>, and further declines to a nominal <strong>7.5 cNm</strong> at 632 cNm.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">For TTS (237): At the critical tipping point of 500 cNm, the feedback torque has massive run-to-run variation (<strong>11.6 ± 12.0 cNm</strong>), reflecting whether the run broke away (low feedback) or remained bound (high feedback).</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Summary on Driver Coupling</h4>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Driver feedback is <strong>highly coupled</strong> to command torque, but in a non-intuitive way. The feedback torque does not grow monotonically. Rather, it acts as a measure of *system resistance*: it is highest during high-impedance, static-hold conditions under sub-breakaway commands, and drops back to nominal values once the rack enters its free-spinning dynamic state and reaches mechanical saturation.</p>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">5. Engineering Recommendations for Controls Calibration</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">Based on the parsed dataset metrics, the following control parameters are recommended:</p>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">1. <strong>Active Centering Torque Limits</strong>: When operating under HCA control, centering torque commands should avoid the <strong>400–500 cNm</strong> transition zone for the Passat NMS, and the <strong>500–600 cNm</strong> zone for the TTS. Operating inside these zones will lead to unpredictable, high-variance step deflections.</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">2. <strong>Path Planning Control Gains</strong>: The path planner must account for the <strong>14% larger travel range</strong> (520.6° vs 455.8°) and the <strong>37% faster acceleration profile</strong> of the Passat NMS rack to prevent over-steering and oscillation during rapid lateral maneuvers.</p>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">3. <strong>Driver Torque Override Calibration</strong>: Driver torque override detection threshold should be calibrated above <strong>25.0 cNm</strong> to prevent HCA commands from self-triggering a false "driver override" during sub-breakaway holds (where opposing feedback columns naturally spike up to 24.1 cNm).</p>
+<div style="height: 0.5rem;"></div>
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>
+<div style="height: 0.5rem;"></div>
+<h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">6. Angular Velocity vs. Wheel Angle Phase Portrait Analysis</h3>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">A classic method to analyze non-linear dynamic systems is the <strong>phase-space trajectory (phase portrait)</strong>, mapping the joint state of <strong>Angular Velocity ($deg/s$) on the y-axis</strong> against <strong>Wheel Angle ($deg$) on the x-axis</strong>.</p>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">For a step-torque input, this plot traces the acceleration, free-sweep, and deceleration history of the steering rack.</p>
+<div style="height: 0.5rem;"></div>
+<h4 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem;">Phase Trajectory Regimes</h4>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">1. <strong>The Acceleration Phase (Positive Slope $d\omega / d\theta > 0$)</strong></p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">Immediately following HCA activation at $(0, 0)$, the step command accelerates the steering rack.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">This phase is characterized by a very steep, vertical trajectory in phase space.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Rack 311 (Passat NMS)</strong> exhibits a steeper acceleration slope compared to <strong>Rack 237 (TTS)</strong> under identical commands, demonstrating its lower internal inertia and torque-to-speed drag.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">2. <strong>The Dynamic Sweep Phase (Peak Velocity Marker)</strong></p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">The trajectory reaches its peak on the y-axis, representing the maximum speed of the rack.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">Below the breakaway threshold (150–400 cNm), the velocity peaks early at small angles (<15°) and immediately decays as centering loads arrest the motion.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">Above the breakaway threshold (500–632 cNm), the rack successfully breaks past Coulomb friction. The phase portrait forms a wide, high-velocity loop, holding speeds above <strong>500°/s</strong> across hundreds of degrees of travel.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">3. <strong>The Deceleration Phase (Negative Slope $d\omega / d\theta < 0$) & Hard Saturation Stop</strong></p>
+<ul style="margin-left: 2rem; margin-bottom: 1.25rem; list-style-type: disc;">
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;">As the rack approaches its mechanical stops, the velocity decelerates back to zero.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Sub-Breakaway Deceleration</strong>: Under low commands, the deceleration slope is gradual, showing a smooth decay to zero as the torsion bar and caster forces slowly bring the rack to a stop.</li>
+<li style="margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 300;"><strong>Breakaway Deceleration (Hard Stops)</strong>: In the fully saturated breakaway regime (600–632 cNm), the rack maintains high speeds up until it slams into the physical rubber bump stops (at 455.8° for TTS, 520.6° for Passat). In phase space, this is visualized as a <strong>vertical plunge in velocity</strong> (infinite deceleration rate $d\omega / d\theta \to -\infty$) at the physical mechanical limits.</li>
+</ul>
+<div style="height: 0.5rem;"></div>
+        </div>
+
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Initialize Mermaid flowcharts in dark mode
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'dark',
+                securityLevel: 'loose',
+                themeVariables: {
+                    background: '#1e293b',
+                    primaryColor: '#0f172a',
+                    primaryTextColor: '#f8fafc',
+                    lineColor: '#00f2fe'
+                }
+            });
+        };
+    </script>
+</body>
+</html>

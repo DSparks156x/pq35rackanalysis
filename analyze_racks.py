@@ -157,7 +157,6 @@ def analyze_file(file_info):
     peak_velocity = max(angular_velocity[i] for i in active_indices)
     
     # Driver torque coupling metrics
-    # Driver torque acts to oppose the steering motion, appearing negative during positive commanded steps
     abs_driver_torques = [abs(driver_torque[i]) for i in active_indices]
     peak_driver_torque = max(abs_driver_torques) if abs_driver_torques else 0.0
     
@@ -166,7 +165,6 @@ def analyze_file(file_info):
     if hold_indices:
         ss_driver_torque = sum(abs(driver_torque[i]) for i in hold_indices) / len(hold_indices)
     else:
-        # Fallback to the last 20% of the active indices
         cutoff = int(len(active_indices) * 0.8)
         fallback_indices = active_indices[cutoff:]
         ss_driver_torque = sum(abs(driver_torque[i]) for i in fallback_indices) / len(fallback_indices) if fallback_indices else 0.0
@@ -318,6 +316,14 @@ def markdown_to_html(md_text):
     for line in lines:
         stripped = line.strip()
         
+        # Handle Images: ![caption](src)
+        img_match = re.match(r'^!\[(.*?)\]\((.*?)\)$', stripped)
+        if img_match:
+            caption = img_match.group(1)
+            src = img_match.group(2)
+            html_lines.append(f'<div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:2rem 0;"><img src="{src}" alt="{caption}" style="max-width:100%; max-height:480px; border-radius:12px; border:1px solid var(--border-color); box-shadow:0 8px 32px rgba(0,0,0,0.3);"/><span style="color:var(--text-secondary); font-size:0.95rem; font-weight:300; font-family:\'Outfit\',sans-serif; margin-top:0.25rem;">{caption}</span></div>')
+            continue
+            
         # Handle Mermaid Blocks
         if stripped.startswith('```mermaid'):
             in_mermaid = True
@@ -362,7 +368,7 @@ def markdown_to_html(md_text):
                 in_table = True
                 continue
             else:
-                html_lines.append('<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">')
+                html_lines.append('<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">')
                 for col in columns:
                     col = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', col)
                     cell_style = 'padding:0.75rem; font-size:0.95rem; font-weight:300;'
@@ -395,24 +401,18 @@ def markdown_to_html(md_text):
             html_lines.append('<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2.5rem 0;"/>')
         else:
             # Standard Paragraph
-            content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', stripped)
+            content = re.sub(r'\*\frac{(.*?)}{(.*?)}', r'\1/\2', stripped) # Basic latex strip if any
+            content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', content)
             content = re.sub(r'`(.*?)`', r'<code style="font-family:\'JetBrains Mono\',monospace; background:rgba(0,0,0,0.3); padding:0.15rem 0.3rem; border-radius:4px; font-size:0.9rem; color:#3b82f6;">\1</code>', content)
             html_lines.append(f'<p style="margin-bottom: 1rem; color: var(--text-secondary); font-weight: 300; font-size: 1.05rem; line-height:1.7;">{content}</p>')
             
-    # Clean up trailing tags
-    if in_list:
-        html_lines.append('</ul>')
-    if in_table:
-        html_lines.append('</tbody></table></div>')
-        
     return '\n'.join(html_lines)
 
-def generate_dashboard(raw_results, aggregated, report_html, output_path):
+def generate_dashboard_page(raw_results, aggregated, output_path):
     """
     Compiles the data results and writes a premium responsive HTML dashboard file.
     Includes custom dark-mode Vanilla CSS styling and interactive CDN-loaded Plotly.js charts.
     """
-    # Serialize data to JSON to inject directly into the HTML
     json_raw_data = json.dumps(raw_results)
     json_agg_data = json.dumps(aggregated)
     
@@ -428,8 +428,6 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-    <!-- Mermaid.js CDN for Flowcharts -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     
     <style>
         /* Modern Glassmorphic Dark Theme Style Guide */
@@ -503,6 +501,28 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
             font-size: 1rem;
             margin-top: 0.25rem;
             font-weight: 300;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+            color: var(--accent-cyan) !important;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .nav-link.active {
+            color: var(--accent-cyan) !important;
+            background: rgba(0, 242, 254, 0.1) !important;
+            border: 1px solid rgba(0, 242, 254, 0.2);
         }
         
         .badge-container {
@@ -782,15 +802,28 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
                 <h1>Steering Rack Dynamic Response</h1>
                 <p>Advanced comparative step-response and torque coupling analysis</p>
             </div>
-            <div class="badge-container">
-                <div class="badge badge-tts">
-                    <span>TTS Rack 237</span>
-                </div>
-                <div class="badge badge-passat">
-                    <span>Passat NMS Rack 311</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
+                    <a href="index.html" class="nav-link active">Dashboard</a>
+                    <a href="analysis.html" class="nav-link">Analysis Report</a>
+                    <a href="notes.html" class="nav-link">Engineering Notes</a>
+                </nav>
+                <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                    <span>Repository</span>
+                </a>
             </div>
         </header>
+
+        <!-- Global Notice Banner -->
+        <div style="background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.15); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: fadeIn 0.8s ease-in-out;">
+            <span style="font-size: 1.25rem; vertical-align: middle;">💡</span>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 300; margin: 0; line-height: 1.5;">
+                For custom testing comments, firmware patch offsets, standstill activation overrides, and torque ceilings, please see the dedicated <a href="notes.html" style="color: var(--accent-cyan); font-weight: 500; text-decoration: none; border-bottom: 1px dashed rgba(0, 242, 254, 0.4); padding-bottom: 1px; transition: all 0.3s;" onmouseover="this.style.color='#fff'; this.style.borderBottomColor='#fff';" onmouseout="this.style.color='var(--accent-cyan)'; this.style.borderBottomColor='rgba(0, 242, 254, 0.4)';">Engineering Notes</a> page.
+            </p>
+        </div>
 
         <!-- Dynamic Filter Controls -->
         <div class="control-panel">
@@ -809,7 +842,7 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
             
             <div class="filter-group" style="flex-grow: 1;">
                 <p style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 300;">
-                    Select a commanded torque above to filter the aligned step response transient charts. The statistical summaries compare overall performance.
+                    Select a commanded torque above to filter the aligned step response transient and phase portrait charts. The statistical summaries compare overall performance.
                 </p>
             </div>
         </div>
@@ -846,7 +879,23 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
 
         </div>
 
-        <!-- Charts Grid 2 -->
+        <!-- Charts Grid 2 (Phase Space) -->
+        <div class="chart-grid">
+            
+            <!-- Velocity vs Angle Phase portrait -->
+            <div class="chart-card" style="grid-column: span 2;">
+                <div class="chart-title">
+                    <div>
+                        <h3>Angular Velocity vs. Wheel Angle Phase Portrait</h3>
+                        <span class="chart-desc">Dynamic phase-space trajectories (acceleration loops, breakaway arcs, and mechanical stops)</span>
+                    </div>
+                </div>
+                <div id="chart-phase" class="plotly-chart" style="height: 520px;"></div>
+            </div>
+
+        </div>
+
+        <!-- Charts Grid 3 -->
         <div class="chart-grid">
             
             <!-- Peak Velocity vs Torque -->
@@ -873,7 +922,7 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
 
         </div>
 
-        <!-- Charts Grid 3 -->
+        <!-- Charts Grid 4 -->
         <div class="chart-grid">
             
             <!-- Driver Torque vs Commanded Torque -->
@@ -913,14 +962,6 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
                         <!-- Populated dynamically via JS -->
                     </tbody>
                 </table>
-            </div>
-        </div>
-
-        <!-- Engineering Analysis Report Card -->
-        <div class="table-card" style="margin-top: 1rem;">
-            <h2 style="font-weight: 700; margin-bottom: 0.5rem; font-size: 1.4rem;">Engineering Report Analysis</h2>
-            <div id="report-content" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
-                {markdown_report}
             </div>
         </div>
 
@@ -964,19 +1005,6 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
 
         // Initialize the UI elements and draw all charts
         window.onload = function() {
-            // Initialize Mermaid flowcharts in dark mode
-            mermaid.initialize({
-                startOnLoad: true,
-                theme: 'dark',
-                securityLevel: 'loose',
-                themeVariables: {
-                    background: '#1e293b',
-                    primaryColor: '#0f172a',
-                    primaryTextColor: '#f8fafc',
-                    lineColor: '#00f2fe'
-                }
-            });
-            
             buildAggregatedCharts();
             updateDashboard();
             buildSummaryTable();
@@ -994,6 +1022,7 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
 
             buildStepAngleChart(filteredTrials);
             buildStepVelocityChart(filteredTrials);
+            buildStepPhaseChart(filteredTrials);
             updateKPICards(selectedTorque);
         }
 
@@ -1103,6 +1132,31 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
             layout.showlegend = trials.length <= 12;
             
             Plotly.newPlot('chart-velocity', data, layout);
+        }
+
+        function buildStepPhaseChart(trials) {
+            const data = [];
+            
+            trials.forEach(t => {
+                const isTTS = t.rack === "237";
+                data.push({
+                    x: t.series.angle,
+                    y: t.series.velocity,
+                    mode: 'lines',
+                    name: `${isTTS ? 'TTS (237)' : 'Passat (311)'} - ${t.torque} cNm (${t.run_name})`,
+                    line: {
+                        color: isTTS ? `rgba(59, 130, 246, ${t.torque / 632 * 0.7 + 0.3})` : `rgba(236, 72, 153, ${t.torque / 632 * 0.7 + 0.3})`,
+                        width: isTTS ? 2.5 : 2
+                    }
+                });
+            });
+
+            const layout = JSON.parse(JSON.stringify(plotlyLayoutTemplate));
+            layout.xaxis.title = 'Wheel Angle (degrees)';
+            layout.yaxis.title = 'Angular Velocity (degrees/second)';
+            layout.showlegend = trials.length <= 12;
+            
+            Plotly.newPlot('chart-phase', data, layout);
         }
 
         function buildAggregatedCharts() {
@@ -1313,31 +1367,271 @@ def generate_dashboard(raw_results, aggregated, report_html, output_path):
 </html>
 """
     
-    # Load and convert analysis report from markdown to HTML
-    html_content = html_template.replace("{json_raw_data}", json_raw_data).replace("{json_agg_data}", json_agg_data).replace("{markdown_report}", report_html)
+    # Perform raw string placeholder replacement
+    html_content = html_template.replace("{json_raw_data}", json_raw_data).replace("{json_agg_data}", json_agg_data)
     
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print(f"Interactive dashboard successfully generated at: {output_path}")
+    print(f"Main Dashboard compiled successfully at: {output_path}")
+
+def generate_text_page(title, nav_active, body_html, output_path):
+    """
+    Compiles a style-consistent HTML text page rendering parsed markdown data.
+    Provides standard back-end navigation tab activations.
+    """
+    html_template = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{page_title}</title>
+    <!-- Premium Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Mermaid.js CDN for Flowcharts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        /* Shared Stylesheets for Absolute Visual Consistency */
+        :root {
+            --bg-color-1: #070a13;
+            --bg-color-2: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.45);
+            --card-bg-hover: rgba(30, 41, 59, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --accent-cyan: #00f2fe;
+            --accent-purple: #8a2be2;
+            --accent-tts: #3b82f6;
+            --accent-passat: #ec4899;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-blur: blur(16px);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color-1) 0%, var(--bg-color-2) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        header {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-title h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 0.25rem;
+            font-weight: 300;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+            color: var(--accent-cyan) !important;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .nav-link.active {
+            color: var(--accent-cyan) !important;
+            background: rgba(0, 242, 254, 0.1) !important;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+        
+        .article-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Table styles inside articles */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        
+        th {
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.4);
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 300;
+        }
+        
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <header>
+            <div class="header-title">
+                <h1>Steering Rack Dynamic Response</h1>
+                <p>Advanced comparative step-response and torque coupling analysis</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <nav style="display: flex; gap: 0.5rem; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.5rem;">
+                    <a href="index.html" class="nav-link {active_dashboard}">Dashboard</a>
+                    <a href="analysis.html" class="nav-link {active_analysis}">Analysis Report</a>
+                    <a href="notes.html" class="nav-link {active_notes}">Engineering Notes</a>
+                </nav>
+                <a href="https://github.com/dsparks156x/pq35rackanalysis" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.color='var(--accent-cyan)'; this.style.borderColor='rgba(0, 242, 254, 0.3)'; this.style.boxShadow='0 0 10px rgba(0, 242, 254, 0.15)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="display: inline-block; vertical-align: middle;">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                    <span>Repository</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="article-card">
+            {article_content}
+        </div>
+
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Initialize Mermaid flowcharts in dark mode
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'dark',
+                securityLevel: 'loose',
+                themeVariables: {
+                    background: '#1e293b',
+                    primaryColor: '#0f172a',
+                    primaryTextColor: '#f8fafc',
+                    lineColor: '#00f2fe'
+                }
+            });
+        };
+    </script>
+</body>
+</html>
+"""
+    # Build navigation active flags
+    active_dash = "active" if nav_active == "dashboard" else ""
+    active_anal = "active" if nav_active == "analysis" else ""
+    active_note = "active" if nav_active == "notes" else ""
+    
+    html_content = html_template.replace("{page_title}", title)\
+                                 .replace("{active_dashboard}", active_dash)\
+                                 .replace("{active_analysis}", active_anal)\
+                                 .replace("{active_notes}", active_note)\
+                                 .replace("{article_content}", body_html)
+                                 
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    print(f"Compiled text page successfully at: {output_path}")
 
 if __name__ == "__main__":
-    # Path settings
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(base_dir, "data")
-    report_path = os.path.join(base_dir, "analysis_report.md")
-    dashboard_path = os.path.join(base_dir, "index.html")
     
-    # Read external markdown analysis report
-    print(f"Loading engineering report from '{report_path}'...")
+    report_path = os.path.join(base_dir, "analysis_report.md")
+    notes_path = os.path.join(base_dir, "notes.md")
+    
+    dashboard_out = os.path.join(base_dir, "index.html")
+    analysis_out = os.path.join(base_dir, "analysis.html")
+    notes_out = os.path.join(base_dir, "notes.html")
+    
+    # Process dynamic CSV data sweeps
+    print(f"Scanning '{data_dir}' for steering rack files...")
+    raw, agg = process_all_data(data_dir)
+    print(f"Processed {len(raw)} successful runs across {len(agg)} distinct system configurations.")
+    
+    # 1. Generate Dashboard Page (index.html)
+    generate_dashboard_page(raw, agg, dashboard_out)
+    
+    # 2. Generate Analysis Report Page (analysis.html)
+    print(f"Loading analysis report from '{report_path}'...")
     if os.path.exists(report_path):
         with open(report_path, 'r', encoding='utf-8') as f:
             md_text = f.read()
         report_html = markdown_to_html(md_text)
     else:
         report_html = "<p style='color: var(--accent-passat);'>Error: analysis_report.md not found in workspace.</p>"
-        
-    print(f"Scanning '{data_dir}' for steering rack files...")
-    raw, agg = process_all_data(data_dir)
-    print(f"Processed {len(raw)} successful runs across {len(agg)} distinct system configurations.")
+    generate_text_page("Steering Rack Response Analysis Report", "analysis", report_html, analysis_out)
     
-    generate_dashboard(raw, agg, report_html, dashboard_path)
+    # 3. Generate Engineering Notes Page (notes.html)
+    print(f"Loading engineering notes from '{notes_path}'...")
+    if os.path.exists(notes_path):
+        with open(notes_path, 'r', encoding='utf-8') as f:
+            md_text = f.read()
+        notes_html = markdown_to_html(md_text)
+    else:
+        notes_html = "<p style='color: var(--accent-passat);'>Error: notes.md not found in workspace. Create a notes.md file in the workspace directory.</p>"
+    generate_text_page("Steering Rack Patcher & Reference Notes", "notes", notes_html, notes_out)
+    
+    print("Multi-page build completely completed for GitHub Pages deployment!")

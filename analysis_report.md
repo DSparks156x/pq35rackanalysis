@@ -115,4 +115,29 @@ Based on the parsed dataset metrics, the following control parameters are recomm
 
 1. **Active Centering Torque Limits**: When operating under HCA control, centering torque commands should avoid the **400–500 cNm** transition zone for the Passat NMS, and the **500–600 cNm** zone for the TTS. Operating inside these zones will lead to unpredictable, high-variance step deflections.
 2. **Path Planning Control Gains**: The path planner must account for the **14% larger travel range** (520.6° vs 455.8°) and the **37% faster acceleration profile** of the Passat NMS rack to prevent over-steering and oscillation during rapid lateral maneuvers.
-3. **Driver Override Calibration**: Driver torque override detection threshold should be calibrated above **25.0 cNm** to prevent HCA commands from self-triggering a false "driver override" during sub-breakaway holds (where opposing feedback columns naturally spike up to 24.1 cNm).
+3. **Driver Torque Override Calibration**: Driver torque override detection threshold should be calibrated above **25.0 cNm** to prevent HCA commands from self-triggering a false "driver override" during sub-breakaway holds (where opposing feedback columns naturally spike up to 24.1 cNm).
+
+---
+
+## 6. Angular Velocity vs. Wheel Angle Phase Portrait Analysis
+
+A classic method to analyze non-linear dynamic systems is the **phase-space trajectory (phase portrait)**, mapping the joint state of **Angular Velocity ($deg/s$) on the y-axis** against **Wheel Angle ($deg$) on the x-axis**. 
+
+For a step-torque input, this plot traces the acceleration, free-sweep, and deceleration history of the steering rack.
+
+### Phase Trajectory Regimes
+
+1. **The Acceleration Phase (Positive Slope $d\omega / d\theta > 0$)**
+   * Immediately following HCA activation at $(0, 0)$, the step command accelerates the steering rack. 
+   * This phase is characterized by a very steep, vertical trajectory in phase space.
+   * **Rack 311 (Passat NMS)** exhibits a steeper acceleration slope compared to **Rack 237 (TTS)** under identical commands, demonstrating its lower internal inertia and torque-to-speed drag.
+
+2. **The Dynamic Sweep Phase (Peak Velocity Marker)**
+   * The trajectory reaches its peak on the y-axis, representing the maximum speed of the rack.
+   * Below the breakaway threshold (150–400 cNm), the velocity peaks early at small angles (<15°) and immediately decays as centering loads arrest the motion.
+   * Above the breakaway threshold (500–632 cNm), the rack successfully breaks past Coulomb friction. The phase portrait forms a wide, high-velocity loop, holding speeds above **500°/s** across hundreds of degrees of travel.
+
+3. **The Deceleration Phase (Negative Slope $d\omega / d\theta < 0$) & Hard Saturation Stop**
+   * As the rack approaches its mechanical stops, the velocity decelerates back to zero.
+   * **Sub-Breakaway Deceleration**: Under low commands, the deceleration slope is gradual, showing a smooth decay to zero as the torsion bar and caster forces slowly bring the rack to a stop.
+   * **Breakaway Deceleration (Hard Stops)**: In the fully saturated breakaway regime (600–632 cNm), the rack maintains high speeds up until it slams into the physical rubber bump stops (at 455.8° for TTS, 520.6° for Passat). In phase space, this is visualized as a **vertical plunge in velocity** (infinite deceleration rate $d\omega / d\theta \to -\infty$) at the physical mechanical limits.
