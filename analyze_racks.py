@@ -888,10 +888,22 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
             
             <!-- Velocity vs Angle Phase portrait -->
             <div class="chart-card" style="grid-column: span 2;">
-                <div class="chart-title">
+                <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h3>Angular Velocity vs. Wheel Angle Phase Portrait</h3>
                         <span class="chart-desc">Dynamic phase-space trajectories (acceleration loops, breakaway arcs, and mechanical stops)</span>
+                    </div>
+                    <div class="filter-group" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <label for="filter-phase-torque" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600;">Phase Torque</label>
+                        <select id="filter-phase-torque" class="filter-select" onchange="updatePhaseChart()" style="padding: 0.4rem 2rem 0.4rem 0.8rem; font-size: 0.85rem; height: auto;">
+                            <option value="all">All Torques</option>
+                            <option value="150">150 cNm</option>
+                            <option value="300">300 cNm</option>
+                            <option value="400">400 cNm</option>
+                            <option value="500">500 cNm</option>
+                            <option value="600">600 cNm</option>
+                            <option value="632" selected>632 cNm (Peak)</option>
+                        </select>
                     </div>
                 </div>
                 <div id="chart-phase" class="plotly-chart" style="height: 520px;"></div>
@@ -1011,6 +1023,7 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
         window.onload = function() {
             buildAggregatedCharts();
             updateDashboard();
+            updatePhaseChart();
             buildSummaryTable();
         };
 
@@ -1026,8 +1039,17 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
 
             buildStepAngleChart(filteredTrials);
             buildStepVelocityChart(filteredTrials);
-            buildStepPhaseChart(filteredTrials);
             updateKPICards(selectedTorque);
+        }
+
+        function updatePhaseChart() {
+            const selectedTorque = document.getElementById("filter-phase-torque").value;
+            let filteredTrials = rawData;
+            if (selectedTorque !== "all") {
+                const tVal = parseInt(selectedTorque);
+                filteredTrials = rawData.filter(d => d.torque === tVal);
+            }
+            buildStepPhaseChart(filteredTrials);
         }
 
         function updateKPICards(selectedTorque) {
@@ -1140,25 +1162,40 @@ def generate_dashboard_page(raw_results, aggregated, output_path):
 
         function buildStepPhaseChart(trials) {
             const data = [];
+            let seenTTS = false;
+            let seenPassat = false;
             
             trials.forEach(t => {
                 const isTTS = t.rack === "237";
+                let showLegend = false;
+                
+                if (isTTS && !seenTTS) {
+                    showLegend = true;
+                    seenTTS = true;
+                } else if (!isTTS && !seenPassat) {
+                    showLegend = true;
+                    seenPassat = true;
+                }
+                
                 data.push({
                     x: t.series.angle,
                     y: t.series.velocity,
                     mode: 'lines',
-                    name: `${isTTS ? 'TTS (237)' : 'Passat (311)'} - ${t.torque} cNm (${t.run_name})`,
+                    name: isTTS ? 'TTS (237)' : 'Passat (311)',
+                    showlegend: showLegend,
+                    legendgroup: isTTS ? 'tts' : 'passat',
                     line: {
                         color: isTTS ? `rgba(59, 130, 246, ${t.torque / 632 * 0.7 + 0.3})` : `rgba(236, 72, 153, ${t.torque / 632 * 0.7 + 0.3})`,
                         width: isTTS ? 2.5 : 2
-                    }
+                    },
+                    hovertemplate: `<b>${isTTS ? 'TTS (237)' : 'Passat (311)'}</b><br>Torque: ${t.torque} cNm<br>Run: ${t.run_name}<br>Angle: %{x}°<br>Velocity: %{y}°/s<extra></extra>`
                 });
             });
 
             const layout = JSON.parse(JSON.stringify(plotlyLayoutTemplate));
             layout.xaxis.title = 'Wheel Angle (degrees)';
             layout.yaxis.title = 'Angular Velocity (degrees/second)';
-            layout.showlegend = trials.length <= 12;
+            layout.showlegend = true;
             
             Plotly.newPlot('chart-phase', data, layout);
         }
